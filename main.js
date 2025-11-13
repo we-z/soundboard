@@ -5,6 +5,18 @@ const maxStreams = 2;
 let currentIndex = 0;
 /** @type {(HTMLAudioElement | null)[]} */
 let audioStreams = new Array(maxStreams).fill(null);
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+function unlockAudio() {
+  if (audioContext.state === "suspended") {
+    audioContext.resume();
+  }
+  document.removeEventListener("touchend", unlockAudio);
+  document.removeEventListener("click", unlockAudio);
+}
+
+document.addEventListener("touchend", unlockAudio, { passive: true });
+document.addEventListener("click", unlockAudio);
 
 /**
  * @param {string} filename
