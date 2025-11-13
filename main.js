@@ -1,11 +1,39 @@
 // @ts-check
 "use strict";
 
+/**
+ * @typedef {Window & { webkitAudioContext?: typeof AudioContext }} WebkitWindow
+ */
+
 const maxStreams = 2;
 let currentIndex = 0;
 /** @type {(HTMLAudioElement | null)[]} */
 let audioStreams = new Array(maxStreams).fill(null);
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+const audioContext = new (window.AudioContext || /** @type {WebkitWindow} */ (window).webkitAudioContext)();
+
+// Prevent all zooming gestures
+let lastTouchEnd = 0;
+
+// Prevent double-tap zoom
+document.addEventListener("touchend", (event) => {
+  const now = Date.now();
+  if (now - lastTouchEnd <= 300) {
+    event.preventDefault();
+  }
+  lastTouchEnd = now;
+}, { passive: false });
+
+// Prevent pinch-to-zoom
+document.addEventListener("touchmove", (event) => {
+  if (event.touches.length > 1) {
+    event.preventDefault();
+  }
+}, { passive: false });
+
+// Prevent gesture events (iOS)
+document.addEventListener("gesturestart", (event) => {
+  event.preventDefault();
+});
 
 function unlockAudio() {
   if (audioContext.state === "suspended") {
